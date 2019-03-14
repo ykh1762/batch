@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="simpleTask" class="kr.or.ddit.batch.task.SimpleTask"/>
+	
+	<!-- cron -> 초 분 시 일 월 요일 
+		 */5 * * * * * : 5초마다 실행함. 	
+		 5 * * * * * : 매 5초(1분 5초, 2분 5초...)에 실행함. 	
+		 * * 17 * * * : 매일 17시에 실행함.					 	-->
+	<task:scheduler id="scheduler"/>	
+	<task:scheduled-tasks scheduler="scheduler">
+		<task:scheduled ref="simpleTask" method="simpleTask" cron="*/5 * * * * *"/>
+	</task:scheduled-tasks>
+
+
+
+
+</beans>
+
+
+
+
+

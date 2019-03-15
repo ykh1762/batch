@@ -4,10 +4,17 @@
 	xmlns:batch="http://www.springframework.org/schema/batch"
 	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
 	xsi:schemaLocation="http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<context:component-scan base-package="kr.or.ddit"/>
+	<context:annotation-config/>
 
 	<!-- datasource : db.properties -->
 	<context:property-placeholder location="classpath:kr/or/ddit/config/db/db.properties"/>
@@ -28,39 +35,23 @@
 		<property name="configLocation" value="classpath:kr/or/ddit/config/db/mybatis-config.xml"/>
 	</bean>
 
-	<bean id="yogurtItemReader" class="org.mybatis.spring.batch.MyBatisCursorItemReader">
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
-		<property name="queryId" value="yogurt.getCycleList"/>
-	</bean>
-
-	<bean id="yogurtItemProcessor" class="kr.or.ddit.yogurt.batch.YogurtItemProcessor" scope="step"/>
-
-	<bean id="yogurtItemWriter" class="kr.or.ddit.yogurt.batch.CustomMyBatisBatchItemWriter">
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
-		<property name="statementId" value="yogurt.mergeDaily"/>
-	</bean>
-
-	<!-- oracle DB - job 실행중 ORA-08177 : 트랜잭션에 대한 직렬화 액세스 에러. 오라클 DB는 
-		 isolation-level-for-create="DEFAULT"로 해야 해당 exception이 발견되지 않는다.(googling) -->
-	<batch:job-repository id="jobRepository" data-source="datasource" transaction-manager="transactionManager"
-			isolation-level-for-create="DEFAULT"/>
-
-	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
-		<property name="jobRepository" ref="jobRepository"/>
+	<!-- new branch 만든 후 삭제. -->
+	
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactory"/>
 	</bean>
 	
-	<batch:job id="yogurtJob" restartable="true">
-		<batch:step id="step1" allow-start-if-complete="true">
-			<batch:tasklet>
-				<batch:chunk reader="yogurtItemReader" processor="yogurtItemProcessor" writer="yogurtItemWriter"
-						commit-interval="1">
-				
-				</batch:chunk>
-			</batch:tasklet>
-		</batch:step>
-	</batch:job>
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*"/>
+		</tx:attributes>
+	</tx:advice>
 
-	<bean id="yogurtTask" class="kr.or.ddit.yogurt.batch.YogurtTask"/>
+	<aop:config>
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* kr.or.ddit..*.service.*(..))"/>
+	</aop:config>
+	
+
 	<task:scheduler id="scheduler"/>
 	<task:executor id="executor"/>
 	<task:annotation-driven executor="executor" scheduler="scheduler"/>

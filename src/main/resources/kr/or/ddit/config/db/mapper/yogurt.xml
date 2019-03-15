@@ -4,31 +4,26 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="yogurt">
 
-	<select id="getCycleList" resultType="cycleVo">
-		SELECT *
-		  FROM CYCLE
-	</select>
+	<!-- 일실적 일괄 삭제. -->
+	<delete id="deleteDailyAllYm" parameterType="String">
+		DELETE DAILY WHERE DT LIKE #{ym} || '%'
+	</delete>
 	
-	<insert id="insertDaily" parameterType="dailyVo">
+	<!-- 일실적 생성 -->
+	<!-- xml에서는 <, >, & 사용 못함. -> '&lt;'로 사용(<) -->
+	<insert id="dailyBatchYm" parameterType="String">
 		INSERT INTO DAILY
-		VALUES (#{cid}, #{pid}, #{dt}, #{cnt})
+		SELECT CYCLE.CID, CYCLE.PID, CAL.DT, CYCLE.CNT
+		FROM CYCLE,
+		    (SELECT TO_CHAR(TO_DATE(#{ym} || '01', 'yyyyMMdd') + (LEVEL-1), 'd') DAY,
+		            TO_CHAR(TO_DATE(#{ym} || '01', 'yyyyMMdd') + (LEVEL-1), 'yyyyMMdd') DT
+		       FROM DUAL
+		     CONNECT BY LEVEL &lt;= LAST_DAY(TO_DATE(#{ym}, 'yyyyMM')) 
+		             - TO_DATE(#{ym} || '01', 'yyyyMMdd') + 1) CAL
+		WHERE CYCLE.DAY = CAL.DAY
 	</insert>
 	
-	<!-- 입력하려고하는 데이터가 존재하면 update, 없으면 insert. 먼저 입력하려고 하는 데이터의 존재
-		 여부를 확인한다.(merge) -->
-	<insert id="mergeDaily" parameterType="dailyVo">
-		MERGE INTO DAILY
-		USING DUAL ON(
-		    DAILY.CID = #{cid} AND
-		    DAILY.PID = #{pid} AND
-		    DAILY.DT = #{dt})
-		-- 해당 데이터가 존재하는 경우.
-		WHEN MATCHED THEN UPDATE SET
-		    CNT = #{cnt}
-		WHEN NOT MATCHED THEN INSERT
-		    (cid, pid, dt, cnt) VALUES (#{cid}, #{pid}, #{dt}, #{cnt})
-	</insert>
-	
+		
   	
 </mapper>
 

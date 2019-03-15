@@ -7,9 +7,11 @@
   <typeAliases>
   	<typeAlias type="kr.or.ddit.yogurt.model.CycleVo" alias="cycleVo"/>
   	<typeAlias type="kr.or.ddit.yogurt.model.DailyVo" alias="dailyVo"/>
+  	<typeAlias type="kr.or.ddit.batch.model.BatchVo" alias="batchVo"/>
   </typeAliases>
 
   <mappers>
     <mapper resource="kr/or/ddit/config/db/mapper/yogurt.xml"/>
+    <mapper resource="kr/or/ddit/config/db/mapper/batch.xml"/>
   </mappers>
 </configuration>

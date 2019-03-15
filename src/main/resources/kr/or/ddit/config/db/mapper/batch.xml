@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="batch">
+
+	<select id="getBatchBid" resultType="int">
+		SELECT SEQ_BATCH.NEXTVAL FROM DUAL
+	</select>
+
+	<!-- 배치 생성 -->
+	<insert id="createBatch" parameterType="batchVo">
+		-- BID, BCD, ST, ST_ED, ED_DT
+		INSERT INTO BATCH 
+		VALUES (#{bid}, #{bcd}, #{st}, SYSDATE, '')
+	</insert>
+
+	<!-- 배치 업데이트 -->
+	<update id="updateBatch" parameterType="batchVo">
+		UPDATE BATCH SET
+			ST = #{st},
+			ED_DT = SYSDATE
+		 WHERE BID = #{bid}
+	</update>
+		
+  	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
